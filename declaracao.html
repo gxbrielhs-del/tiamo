@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uma surpresa pra você 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose: #c8395a;
+    --rose-light: #f5c6d0;
+    --rose-pale: #fdf0f2;
+    --cream: #faf7f2;
+    --ink: #1a1018;
+    --muted: #8a7080;
+    --gold: #c9a84c;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  /* Fundo decorativo */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 10% 20%, #fde8ec 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 90% 80%, #fde8ec 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 520px;
+    padding: 1.5rem;
+  }
+
+  /* Screens */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Cartão */
+  .card {
+    background: #fff;
+    border: 1px solid #f0e6ea;
+    border-radius: 20px;
+    padding: 2rem 2rem;
+    width: 100%;
+    box-shadow: 0 4px 32px #c8395a0d;
+  }
+
+  /* Tipografia */
+  .display {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .body-text {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+  .italic {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--rose);
+  }
+  .hint { font-size: 12px; color: #bba8b0; }
+
+  /* Progress */
+  .progress-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+  }
+  .progress-dot {
+    width: 28px; height: 4px;
+    border-radius: 99px;
+    background: var(--rose-light);
+    transition: background 0.4s;
+  }
+  .progress-dot.done { background: var(--rose); }
+
+  /* Botões */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 11px 28px;
+    border-radius: 99px;
+    border: 1.5px solid var(--rose-light);
+    background: transparent;
+    color: var(--rose);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover { background: var(--rose-pale); border-color: var(--rose); }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--rose);
+    border-color: var(--rose);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #a8273d; border-color: #a8273d; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* Ícone coração */
+  .heart-icon {
+    font-size: 52px;
+    display: block;
+    animation: heartbeat 1.6s ease-in-out infinite;
+    line-height: 1;
+  }
+  @keyframes heartbeat {
+    0%,100%{ transform: scale(1); }
+    14%    { transform: scale(1.15); }
+    28%    { transform: scale(1); }
+    42%    { transform: scale(1.1); }
+    70%    { transform: scale(1); }
+  }
+
+  /* ── JOGO 1: Memória ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+  .mem-card {
+    aspect-ratio: 1;
+    position: relative;
+    cursor: pointer;
+    perspective: 700px;
+  }
+  .mem-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.38s ease;
+    border-radius: 14px;
+  }
+  .mem-card.flipped .mem-inner { transform: rotateY(180deg); }
+  .mem-front, .mem-back {
+    position: absolute; inset: 0;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    border: 1.5px solid #f0e6ea;
+  }
+  .mem-front {
+    background: var(--rose-pale);
+    color: var(--rose);
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 400;
+  }
+  .mem-back { background: #fff; transform: rotateY(180deg); }
+  .mem-card.matched .mem-inner { opacity: 0.45; pointer-events: none; }
+  #match-info { font-size: 13px; color: var(--muted); }
+
+  /* ── JOGO 2: Pega o coração ── */
+  #click-area {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    border-radius: 16px;
+    background: var(--rose-pale);
+    border: 1.5px solid #f0d4da;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  .deco-heart {
+    position: absolute;
+    font-size: 18px;
+    opacity: 0.35;
+    animation: floatDeco 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes floatDeco {
+    0%,100%{ transform: translateY(0) rotate(-8deg); }
+    50%    { transform: translateY(-10px) rotate(8deg); }
+  }
+  #run-heart {
+    position: absolute;
+    font-size: 36px;
+    cursor: pointer;
+    transition: transform 0.12s;
+    user-select: none;
+    line-height: 1;
+  }
+  #run-heart:hover { transform: scale(1.2); }
+  #click-info { font-size: 13px; color: var(--muted); }
+
+  /* ── JOGO 3: Pergunta ── */
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  #q-feedback { font-size: 13px; color: var(--rose); min-height: 18px; }
+
+  /* ── Final ── */
+  .letter-body {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.9;
+    text-align: left;
+  }
+  .letter-sign {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--rose);
+    margin-top: 1rem;
+    text-align: right;
+  }
+  .gold-line {
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 0.5rem auto;
+    opacity: 0.6;
+  }
+
+  /* Confetti */
+  #confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+  .conf-piece {
+    position: absolute;
+    border-radius: 2px;
+    opacity: 0;
+    animation: confFall linear forwards;
+  }
+  @keyframes confFall {
+    0%  { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+    100%{ transform: translateY(105vh) rotate(600deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="confetti-layer"></div>
+
+<div class="wrapper">
+
+  <!-- Tela 0 -->
+  <div class="screen active" id="s0">
+    <span class="heart-icon">💌</span>
+    <div class="card">
+      <p class="display">Uma surpresa pra você</p>
+      <div class="gold-line"></div>
+      <p class="body-text">Preparei um joguinho especial com muito carinho. Complete os 3 desafios e descubra uma mensagem que venho guardando no coração.</p>
+    </div>
+    <button class="btn btn-primary" onclick="goTo('s1')">Quero jogar ♡</button>
+  </div>
+
+  <!-- Tela 1: Memória -->
+  <div class="screen" id="s1">
+    <div class="progress-row">
+      <div class="progress-dot done" id="d1"></div>
+      <div class="progress-dot" id="d2"></div>
+      <div class="progress-dot" id="d3"></div>
+    </div>
+    <div class="card">
+      <p class="display" style="font-size:22px">Jogo da memória</p>
+      <div class="gold-line"></div>
+      <p class="body-text">Encontre os 4 pares — assim como você me encontrou na vida.</p>
+      <div style="margin-top:1.2rem">
+        <div class="cards-grid" id="cards-grid"></div>
+        <p id="match-info" style="margin-top:0.8rem">0 de 4 pares encontrados</p>
+      </div>
+    </div>
+    <p class="hint">Clique em duas cartas para virar</p>
+  </div>
+
+  <!-- Tela 2: Clique -->
+  <div class="screen" id="s2">
+    <div class="progress-row">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done" id="d2b"></div>
+      <div class="progress-dot" id="d3b"></div>
+    </div>
+    <div class="card">
+      <p class="display" style="font-size:22px">Pega o coração</p>
+      <div class="gold-line"></div>
+      <p class="body-text">O coração fica fugindo... mas o seu eu nunca largo. Clique 5 vezes!</p>
+      <div style="margin-top:1.2rem">
+        <div id="click-area">
+          <span class="deco-heart" style="top:12px;left:18px;animation-delay:0s">✨</span>
+          <span class="deco-heart" style="top:50px;right:16px;animation-delay:0.8s">🌸</span>
+          <span class="deco-heart" style="bottom:14px;left:40px;animation-delay:1.4s">⭐</span>
+          <span class="deco-heart" style="bottom:10px;right:30px;animation-delay:0.4s">🌷</span>
+          <span id="run-heart" onclick="clickHeart()">❤️</span>
+        </div>
+        <p id="click-info" style="margin-top:0.8rem">0 de 5 cliques</p>
+      </div>
+    </div>
+    <p class="hint">Ele vai fugir cada vez que você clicar!</p>
+  </div>
+
+  <!-- Tela 3: Pergunta -->
+  <div class="screen" id="s3">
+    <div class="progress-row">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done" id="d3c"></div>
+    </div>
+    <div class="card">
+      <p class="display" style="font-size:22px">Pergunta secreta</p>
+      <div class="gold-line"></div>
+      <p class="question-text">"O que você sente quando estamos juntos?"</p>
+      <div class="btn-row" style="margin-top:1.2rem">
+        <button class="btn" onclick="answerQ(false)">Tédio</button>
+        <button class="btn" onclick="answerQ(false)">Indiferença</button>
+        <button class="btn btn-primary" onclick="answerQ(true)">Felicidade ♡</button>
+        <button class="btn" onclick="answerQ(false)">Sono</button>
+      </div>
+      <p id="q-feedback" style="margin-top:0.8rem"></p>
+    </div>
+  </div>
+
+  <!-- Tela Final -->
+  <div class="screen" id="s-final">
+    <span class="heart-icon">💕</span>
+    <div class="card">
+      <p class="display" style="color:var(--rose); font-size:20px">Minha declaração</p>
+      <div class="gold-line"></div>
+      <p class="letter-body">
+        Você é a pessoa que faz meu dia fazer sentido. Quando estou com você, tudo fica mais bonito, mais leve, mais verdadeiro.
+        <br><br>
+        Eu te amo de um jeito que não cabe em palavras — mas cabia num joguinho bobo feito com todo o carinho do mundo só pra você.
+        <br><br>
+        Obrigado por existir na minha vida.
+      </p>
+      <p class="letter-sign">— com todo o meu amor 💌</p>
+    </div>
+    <button class="btn" onclick="restart()">Jogar de novo ♡</button>
+  </div>
+
+</div>
+
+<script>
+const EMOJIS = ['🌹','🌹','💫','💫','🎀','🎀','🌸','🌸'];
+let flipped=[], matched=0, canFlip=true, clicks=0;
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  if(id==='s1') initMemory();
+  if(id==='s2') initClick();
+}
+
+/* ─ Memória ─ */
+function initMemory(){
+  matched=0; flipped=[]; canFlip=true;
+  document.getElementById('match-info').textContent='0 de 4 pares encontrados';
+  const grid=document.getElementById('cards-grid');
+  grid.innerHTML='';
+  const deck=EMOJIS.map(e=>({e,r:Math.random()})).sort((a,b)=>a.r-b.r);
+  deck.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='mem-card';
+    c.dataset.val=item.e;
+    c.innerHTML=`<div class="mem-inner"><div class="mem-front">?</div><div class="mem-back">${item.e}</div></div>`;
+    c.onclick=()=>flipCard(c);
+    grid.appendChild(c);
+  });
+}
+function flipCard(card){
+  if(!canFlip||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  flipped.push(card);
+  if(flipped.length===2){
+    canFlip=false;
+    setTimeout(()=>{
+      if(flipped[0].dataset.val===flipped[1].dataset.val){
+        flipped.forEach(c=>c.classList.add('matched'));
+        matched++;
+        document.getElementById('match-info').textContent=`${matched} de 4 pares encontrados`;
+        if(matched===4) setTimeout(()=>goTo('s2'),700);
+      } else {
+        flipped.forEach(c=>c.classList.remove('flipped'));
+      }
+      flipped=[]; canFlip=true;
+    }, 850);
+  }
+}
+
+/* ─ Clique ─ */
+function initClick(){
+  clicks=0;
+  document.getElementById('click-info').textContent='0 de 5 cliques';
+  moveHeart();
+}
+function moveHeart(){
+  const area=document.getElementById('click-area');
+  const h=document.getElementById('run-heart');
+  if(!h)return;
+  const mxX=area.clientWidth-48, mxY=area.clientHeight-48;
+  h.style.left=Math.max(4,Math.floor(Math.random()*mxX))+'px';
+  h.style.top =Math.max(4,Math.floor(Math.random()*mxY))+'px';
+}
+function clickHeart(){
+  clicks++;
+  document.getElementById('click-info').textContent=`${clicks} de 5 cliques`;
+  if(clicks>=5){setTimeout(()=>goTo('s3'),400);return;}
+  moveHeart();
+}
+
+/* ─ Pergunta ─ */
+function answerQ(ok){
+  if(ok){ setTimeout(()=>{goTo('s-final');launchConfetti();},350);}
+  else { document.getElementById('q-feedback').textContent='Hmm... tente de novo com o coração 😄';}
+}
+
+/* ─ Confetti ─ */
+function launchConfetti(){
+  const layer=document.getElementById('confetti-layer');
+  layer.innerHTML='';
+  const cols=['#c8395a','#f5c6d0','#c9a84c','#c8b6ff','#a8d8ea','#ffd6a5'];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');
+    p.className='conf-piece';
+    const sz=7+Math.random()*9;
+    p.style.cssText=`left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*1.2}s;`;
+    layer.appendChild(p);
+  }
+  setTimeout(()=>layer.innerHTML='',5000);
+}
+
+function restart(){
+  document.getElementById('confetti-layer').innerHTML='';
+  goTo('s0');
+}
+</script>
+</body>
+</html>
